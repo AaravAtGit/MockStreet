@@ -37,7 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     if (!isLoading && !session) {
       const protectedRoutes = [
-        '/dashboard', '/battles', '/challenge', '/charts', '/leaderboard'
+        '/dashboard', '/battles', '/charts', '/leaderboard'
       ];
       
       if (protectedRoutes.includes(pathname)) {
