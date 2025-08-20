@@ -10,7 +10,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "MockStreet - Master NIFTY Trading, Earn Real Rewards",
   description: "India's premier mock trading platform focused on NIFTY. Complete challenges, earn rewards, and develop professional trading skills.",
-  generator: 'v0.dev'
 }
 
 export default function RootLayout({

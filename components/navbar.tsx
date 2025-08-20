@@ -3,25 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase.js';
-import type { Session } from '@supabase/supabase-js';
+import { useAuth } from "@/components/auth-provider"
 
 export function Navbar() {
-  const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-    };
-    getSession();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []);
+  const { user, logout } = useAuth()
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,26 +24,17 @@ export function Navbar() {
             <Link href="/challenge" className="text-foreground hover:text-primary transition-colors">
               Challenge
             </Link>
-            {session && (
+            {user && (
               <>
                 <Link href="/battles" className="text-foreground hover:text-primary transition-colors">
                   Battles
-                </Link>
-                <Link href="/charts" className="text-foreground hover:text-primary transition-colors">
-                  Charts
-                </Link>
-                <Link href="/leaderboard" className="text-foreground hover:text-primary transition-colors">
-                  Leaderboard
-                </Link>
-                <Link href="/dashboard" className="text-foreground hover:text-primary transition-colors">
-                  Dashboard
                 </Link>
               </>
             )}
           </div>
 
           <div className="flex items-center space-x-4">
-            {!session ? (
+            {!user ? (
               <>
                 <Button variant="ghost" asChild>
                   <Link href="/login">Login</Link>
@@ -67,11 +43,12 @@ export function Navbar() {
                   <Link href="/login">Sign Up</Link>
                 </Button>
               </>
-            ) : null}
+            ) : (
+              <Button variant="outline" onClick={() => logout()}>Logout</Button>
+            )}
           </div>
         </div>
       </div>
     </nav>
   )
 }
- 

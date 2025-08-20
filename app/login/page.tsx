@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, Mail, Lock, User } from "lucide-react"
 import Link from "next/link"
-import { supabase } from '@/lib/supabase.js';
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/auth-provider'
 
 interface LoginPageProps {}
 
@@ -40,42 +41,32 @@ export default function LoginPage({}: LoginPageProps) {
   const [signupSuccess, setSignupSuccess] = useState('');
   const [signupLoading, setSignupLoading] = useState(false);
 
-  // Handle login
+  const router = useRouter();
+  const { login } = useAuth();
+
+  // Handle login (Dummy)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     setLoginError('');
     setLoginSuccess('');
-    
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
-      });
-      
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          setLoginError('Invalid email or password. Please try again.');
-        } else {
-          setLoginError(error.message);
-        }
-      } else if (data?.user && !data.user.email_confirmed_at) {
-        setLoginError('Please verify your email before logging in. Check your inbox for a verification link.');
-        await supabase.auth.signOut();
+      if (!loginEmail) {
+        setLoginError('Please enter an email.');
       } else {
+        await login(loginEmail);
         setLoginSuccess('Login successful! Redirecting...');
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1000);
+        setTimeout(() => router.push('/dashboard'), 600);
       }
     } catch (error) {
       setLoginError('An unexpected error occurred. Please try again.');
     }
-    
+
     setLoginLoading(false);
   };
 
-  // Handle signup
+  // Handle signup (Dummy)
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignupLoading(true);
@@ -83,28 +74,12 @@ export default function LoginPage({}: LoginPageProps) {
     setSignupSuccess('');
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          data: {
-            full_name: signupName,
-          },
-        },
-      });
-
-      if (error) {
-        if (error.message.includes('User already registered')) {
-          setSignupError('This email is already registered. Please try logging in instead.');
-        } else {
-          setSignupError(error.message);
-        }
+      if (!signupEmail || !signupName) {
+        setSignupError('Please enter name and email.');
       } else {
-        setSignupSuccess('Account created successfully! Please check your email to verify your account.');
-        // Clear form
-        setSignupName('');
-        setSignupEmail('');
-        setSignupPassword('');
+        await login(signupEmail, signupName);
+        setSignupSuccess('Account created! Redirecting...');
+        setTimeout(() => router.push('/dashboard'), 600);
       }
     } catch (error) {
       setSignupError('An unexpected error occurred. Please try again.');
@@ -139,7 +114,7 @@ export default function LoginPage({}: LoginPageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Login</CardTitle>
-                <CardDescription>Enter your credentials to access your account</CardDescription>
+                <CardDescription>Enter your email to access your account</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={handleLogin} className="space-y-4">
@@ -160,9 +135,9 @@ export default function LoginPage({}: LoginPageProps) {
                     </div>
                   </div>
 
-                  {/* Password Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                  {/* Password Input (disabled in dummy mode) */}
+                  <div className="space-y-2 opacity-60">
+                    <Label htmlFor="password">Password (disabled in test mode)</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
@@ -172,7 +147,7 @@ export default function LoginPage({}: LoginPageProps) {
                         className="pl-10" 
                         value={loginPassword}
                         onChange={e => setLoginPassword(e.target.value)}
-                        required
+                        disabled
                       />
                     </div>
                   </div>
@@ -194,9 +169,9 @@ export default function LoginPage({}: LoginPageProps) {
 
                 {/* Password Reset Link */}
                 <div className="text-center">
-                  <Link href="#" className="text-sm text-primary hover:underline">
-                    Forgot your password?
-                  </Link>
+                  <span className="text-sm text-muted-foreground">
+                    Password reset disabled in test mode
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -207,7 +182,7 @@ export default function LoginPage({}: LoginPageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Create Account</CardTitle>
-                <CardDescription>Join thousands of successful traders</CardDescription>
+                <CardDescription>Dummy signup for testing only</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={handleSignup} className="space-y-4">
@@ -245,9 +220,9 @@ export default function LoginPage({}: LoginPageProps) {
                     </div>
                   </div>
 
-                  {/* Password Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                  {/* Password Input (disabled in dummy mode) */}
+                  <div className="space-y-2 opacity-60">
+                    <Label htmlFor="signup-password">Password (disabled in test mode)</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input 
@@ -257,7 +232,7 @@ export default function LoginPage({}: LoginPageProps) {
                         className="pl-10" 
                         value={signupPassword}
                         onChange={e => setSignupPassword(e.target.value)}
-                        required
+                        disabled
                       />
                     </div> 
                   </div>
@@ -279,14 +254,7 @@ export default function LoginPage({}: LoginPageProps) {
 
                 {/* Terms and Privacy Policy */}
                 <p className="text-xs text-muted-foreground text-center">
-                  By creating an account, you agree to our{" "}
-                  <Link href="#" className="text-primary hover:underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="#" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
+                  By creating an account in test mode, no data is stored on servers.
                 </p>
               </CardContent>
             </Card>
