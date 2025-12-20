@@ -1,224 +1,330 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Check, TrendingUp, Shield, Award, Users, BarChart3, Target, Zap } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
+import dynamic from "next/dynamic"
+import { motion, useScroll, useTransform } from "framer-motion"
+import { useRef } from "react"
+
+// Dynamic import to avoid SSR issues with Three.js
+const GridScan = dynamic(() => import("@/components/GridScan"), { 
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-background" />
+})
+
+// Custom icons as SVG components for unique feel
+const SearchIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.3-4.3"/>
+    <path d="M11 8a3 3 0 0 0-3 3"/>
+  </svg>
+)
+
+const ChartIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v18h18"/>
+    <path d="m19 9-5 5-4-4-3 3"/>
+    <circle cx="19" cy="9" r="2" fill="currentColor"/>
+    <circle cx="14" cy="14" r="2" fill="currentColor"/>
+  </svg>
+)
+
+const TrophyIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+    <path d="M4 22h16"/>
+    <path d="M10 22V8a6 6 0 0 0-6-4h0"/>
+    <path d="M14 22V8a6 6 0 0 1 6-4h0"/>
+    <path d="M8 22h8"/>
+    <path d="M12 17v5"/>
+  </svg>
+)
+
+function HowItWorksSection() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  })
+
+  const steps = [
+    {
+      number: "01",
+      title: "Find a match",
+      description: "Jump into the queue and get matched with a trader at your skill level. Takes seconds, not minutes.",
+      icon: <SearchIcon />,
+      color: "from-violet-500/20 to-purple-500/20",
+      borderColor: "border-violet-500/30"
+    },
+    {
+      number: "02", 
+      title: "Trade the same market",
+      description: "Same chart, same prices, same volatility. The only difference? Your strategy vs theirs.",
+      icon: <ChartIcon />,
+      color: "from-emerald-500/20 to-teal-500/20",
+      borderColor: "border-emerald-500/30"
+    },
+    {
+      number: "03",
+      title: "Best PnL wins",
+      description: "When the clock hits zero, highest profit takes the crown. Simple as that.",
+      icon: <TrophyIcon />,
+      color: "from-amber-500/20 to-orange-500/20",
+      borderColor: "border-amber-500/30"
+    }
+  ]
+
+  return (
+    <section ref={containerRef} className="py-32 px-4 border-t border-white/5 overflow-hidden">
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mb-20"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Three steps to glory
+          </h2>
+          <p className="text-xl text-muted-foreground">
+            From queue to victory in minutes
+          </p>
+        </motion.div>
+
+        <div className="relative">
+          {/* Connecting line */}
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-violet-500/50 via-emerald-500/50 to-amber-500/50" />
+          
+          <div className="space-y-24 md:space-y-32">
+            {steps.map((step, index) => (
+              <motion.div
+                key={step.number}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.7, delay: 0.1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-8 md:gap-16`}
+              >
+                {/* Content */}
+                <div className={`flex-1 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className={`inline-block p-8 rounded-2xl bg-gradient-to-br ${step.color} border ${step.borderColor} backdrop-blur-sm`}
+                  >
+                    <div className={`flex items-center gap-4 mb-4 ${index % 2 === 0 ? 'md:justify-end' : ''}`}>
+                      <span className="text-4xl font-bold text-muted-foreground/30">{step.number}</span>
+                      <div className="p-2 rounded-lg bg-white/5">
+                        {step.icon}
+                      </div>
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground text-lg max-w-md">
+                      {step.description}
+                    </p>
+                  </motion.div>
+                </div>
+
+                {/* Center dot */}
+                <motion.div 
+                  className="hidden md:flex w-16 h-16 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 items-center justify-center z-10"
+                  whileInView={{ scale: [0, 1.2, 1] }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="w-4 h-4 rounded-full bg-white" />
+                </motion.div>
+
+                {/* Spacer for alternating layout */}
+                <div className="flex-1 hidden md:block" />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 export default function LandingPage() {
-  const pricingTiers = [
-    {
-      name: "Free",
-      price: "₹0",
-      period: "forever",
-      description: "Perfect for beginners to start mock trading",
-      features: ["Mock trading on NIFTY", "Basic portfolio tracking", "Educational resources", "Community access"],
-      popular: false,
-      buttonText: "Get Started",
-      buttonVariant: "outline" as const,
-    },
-    {
-      name: "Basic",
-      price: "₹499",
-      period: "month",
-      description: "Access to our 4-week challenge program",
-      features: [
-        "Everything in Free",
-        "4-week challenge access",
-        "Performance analytics",
-        "Risk management tools",
-        "Weekly progress reports",
-      ],
-      popular: true,
-      buttonText: "Start Challenge",
-      buttonVariant: "default" as const,
-    },
-    {
-      name: "Pro",
-      price: "₹999",
-      period: "month",
-      description: "Advanced tools for serious traders",
-      features: [
-        "Everything in Basic",
-        "Advanced analysis tools",
-        "Custom indicators",
-        "Market sentiment analysis",
-        "Priority support",
-      ],
-      popular: false,
-      buttonText: "Go Pro",
-      buttonVariant: "outline" as const,
-    },
-    {
-      name: "Elite",
-      price: "₹1,999",
-      period: "month",
-      description: "Complete trading career development",
-      features: [
-        "Everything in Pro",
-        "Career desk access",
-        "1-on-1 mentoring",
-        "Job placement assistance",
-        "Exclusive trading strategies",
-      ],
-      popular: false,
-      buttonText: "Join Elite",
-      buttonVariant: "outline" as const,
-    },
-  ]
-
-  const features = [
-    {
-      icon: TrendingUp,
-      title: "NIFTY Focused Trading",
-      description: "Specialized platform for NIFTY index trading with real-time data and analysis",
-    },
-    {
-      icon: Shield,
-      title: "Risk Management",
-      description: "Advanced risk controls and position sizing to protect your capital",
-    },
-    {
-      icon: Award,
-      title: "Earn Rewards",
-      description: "Win Amazon, Swiggy gift cards and other exciting rewards for successful trading",
-    },
-    {
-      icon: Users,
-      title: "Community",
-      description: "Connect with fellow traders and learn from experienced professionals",
-    },
-    {
-      icon: BarChart3,
-      title: "Advanced Analytics",
-      description: "Comprehensive performance tracking and detailed trading analytics",
-    },
-    {
-      icon: Target,
-      title: "4-Week Challenge",
-      description: "Structured program to develop and test your trading skills progressively",
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-4">
-            <Zap className="w-4 h-4 mr-2" />
-            India's Premier Mock Trading Platform
-          </Badge>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Master NIFTY Trading,
-            <span className="text-primary"> Earn Real Rewards</span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Join thousands of traders who are honing their skills on MockStreet. Trade NIFTY with virtual capital,
-            complete challenges, and earn exciting rewards including Amazon and Swiggy gift cards.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/login">Start Trading Now</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/challenge">View Challenge Rules</Link>
-            </Button>
-          </div>
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
+        {/* GridScan Background */}
+        <div className="absolute inset-0">
+          <GridScan
+            sensitivity={0.55}
+            lineThickness={1}
+            linesColor="#1a1a1a"
+            gridScale={0.1}
+            scanColor="#ffffff"
+            scanOpacity={0.3}
+            enablePost={true}
+            bloomIntensity={0.4}
+            chromaticAberration={0.001}
+            noiseIntensity={0.005}
+            scanDuration={3}
+            scanDelay={1}
+          />
         </div>
+        
+        <div className="relative max-w-4xl mx-auto text-center z-10">
+          <motion.h1 
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            Trade. Compete.
+            <br />
+            <span className="bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+              Prove yourself.
+            </span>
+          </motion.h1>
+
+          <motion.p 
+            className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            1v1 trading battles. Same market, different strategies. 
+            Highest profit wins. No real money at stake.
+          </motion.p>
+
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+          >
+            <Button size="lg" className="text-base px-8 py-6" asChild>
+              <Link href="#">Start your first battle</Link>
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Scroll indicator */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-2">
+            <div className="w-1 h-2 bg-white/50 rounded-full" />
+          </div>
+        </motion.div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-muted/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Our Platform?</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to become a successful NIFTY trader
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardHeader>
-                  <feature.icon className="w-12 h-12 text-primary mb-4" />
-                  <CardTitle>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+      {/* How It Works */}
+      <HowItWorksSection />
+
+      {/* Value Props */}
+      <section className="py-24 px-4 bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why traders love it</h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              {
+                title: "Practice without risk",
+                description: "Trade with virtual money. Make mistakes, learn from them, and develop your skills without losing a single rupee."
+              },
+              {
+                title: "Competition makes you better",
+                description: "Paper trading alone gets boring. Competing against real people pushes you to think faster and trade smarter."
+              },
+              {
+                title: "Real market data",
+                description: "Trade on actual live market movements. Your decisions are tested against the same volatility you'd face with real money."
+              },
+              {
+                title: "Track your progress",
+                description: "See your win rate, analyze your trades, and watch yourself improve over time. Climb the ranks as you get better."
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="border-0 bg-transparent hover:bg-white/5 transition-colors">
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
+                    <p className="text-muted-foreground text-lg">{item.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 px-4 md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Trading Journey</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From beginner to professional trader - we have the right plan for you
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {pricingTiers.map((tier, index) => (
-              <Card key={index} className={`relative ${tier.popular ? "border-primary shadow-lg scale-105" : ""}`}>
-                {tier.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2">Most Popular</Badge>
-                )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{tier.price}</span>
-                    <span className="text-muted-foreground">/{tier.period}</span>
-                  </div>
-                  <CardDescription className="mt-2">{tier.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
-                    {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center">
-                        <Check className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button className="w-full" variant={tier.buttonVariant} asChild>
-                    <Link href="/login">{tier.buttonText}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      {/* Who It's For */}
+      <section className="py-24 px-4 border-t border-white/5">
+        <motion.div 
+          className="max-w-3xl mx-auto text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Built for everyone who wants to trade better
+          </h2>
+          <p className="text-xl text-muted-foreground mb-8">
+            Whether you're a college student learning the markets, an experienced trader 
+            looking for competition, or just someone who loves the thrill of trading — 
+            MockStreet is your arena.
+          </p>
+        </motion.div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Start Your Trading Journey?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join our community of successful traders and start earning rewards today
+      {/* Final CTA */}
+      <section className="py-24 px-4 border-t border-white/5">
+        <motion.div 
+          className="max-w-2xl mx-auto text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Ready to find out how good you are?
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Free to play. No real money required.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="/login">Create Account</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/challenge">Learn More</Link>
-            </Button>
-          </div>
-        </div>
+          <Button size="lg" className="text-base px-8 py-6" asChild>
+            <Link href="#">Create your account</Link>
+          </Button>
+        </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 md:px-6 lg:px-8 border-t">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-muted-foreground">© 2024 MockStreet. All rights reserved.</p>
+      <footer className="py-8 px-4 border-t border-white/5">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-muted-foreground text-sm">
+            © 2024 MockStreet
+          </p>
         </div>
       </footer>
     </div>
