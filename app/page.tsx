@@ -1,12 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import dynamic from "next/dynamic"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion, useScroll } from "framer-motion"
 import { useRef } from "react"
+import CardSwap, { Card as SwapCard } from "@/components/CardSwap"
 
 // Dynamic import to avoid SSR issues with Three.js
 const GridScan = dynamic(() => import("@/components/GridScan"), { 
@@ -41,6 +41,34 @@ const TrophyIcon = () => (
     <path d="M14 22V8a6 6 0 0 1 6-4h0"/>
     <path d="M8 22h8"/>
     <path d="M12 17v5"/>
+  </svg>
+)
+
+// Additional icons for CardSwap cards
+const ShieldIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="m9 12 2 2 4-4"/>
+  </svg>
+)
+
+const BoltIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </svg>
+)
+
+const ChartLineIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v18h18"/>
+    <path d="m7 16 4-8 4 5 5-9"/>
+  </svg>
+)
+
+const TrendUpIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+    <polyline points="16 7 22 7 22 13"/>
   </svg>
 )
 
@@ -227,9 +255,9 @@ export default function LandingPage() {
       {/* How It Works */}
       <HowItWorksSection />
 
-      {/* Value Props */}
-      <section className="py-24 px-4 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
+      {/* Value Props with CardSwap */}
+      <section className="py-24 px-4 bg-muted/30 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -238,47 +266,91 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Why traders love it</h2>
+            <p className="text-muted-foreground text-lg">Hover to pause, watch the benefits stack up</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Practice without risk",
-                description: "Trade with virtual money. Make mistakes, learn from them, and develop your skills without losing a single rupee."
-              },
-              {
-                title: "Competition makes you better",
-                description: "Paper trading alone gets boring. Competing against real people pushes you to think faster and trade smarter."
-              },
-              {
-                title: "Real market data",
-                description: "Trade on actual live market movements. Your decisions are tested against the same volatility you'd face with real money."
-              },
-              {
-                title: "Track your progress",
-                description: "See your win rate, analyze your trades, and watch yourself improve over time. Climb the ranks as you get better."
-              }
-            ].map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            {/* Left side - text */}
+            <div className="flex-1 space-y-8">
+              {[
+                { title: "Zero risk", desc: "Virtual money means real learning without real losses" },
+                { title: "Fast matches", desc: "Get paired in seconds, not minutes" },
+                { title: "Live data", desc: "Real market movements, real decisions" },
+                { title: "Track progress", desc: "Watch your win rate climb over time" }
+              ].map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className="flex items-start gap-4"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-sm font-bold">{i + 1}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-1">{item.title}</h3>
+                    <p className="text-muted-foreground">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Right side - CardSwap */}
+            <div className="flex-1 flex justify-center items-center min-h-[550px]">
+              <CardSwap
+                cardDistance={50}
+                verticalDistance={60}
+                delay={2500}
+                pauseOnHover={true}
+                width={420}
+                height={280}
+                easing="elastic"
               >
-                <Card className="border-0 bg-transparent hover:bg-white/5 transition-colors">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-semibold mb-3">{item.title}</h3>
-                    <p className="text-muted-foreground text-lg">{item.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                <SwapCard className="bg-gradient-to-br from-violet-500/20 to-purple-500/10 border-violet-500/30">
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-violet-500/20 flex items-center justify-center mb-4">
+                      <ShieldIcon />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-3">Practice without risk</h3>
+                    <p className="text-muted-foreground">Trade with virtual money. Make mistakes and learn without losing a rupee.</p>
+                  </div>
+                </SwapCard>
+                <SwapCard className="bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border-emerald-500/30">
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4">
+                      <BoltIcon />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-3">Competition makes you better</h3>
+                    <p className="text-muted-foreground">Competing against real people pushes you to think faster and trade smarter.</p>
+                  </div>
+                </SwapCard>
+                <SwapCard className="bg-gradient-to-br from-amber-500/20 to-orange-500/10 border-amber-500/30">
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+                      <ChartLineIcon />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-3">Real market data</h3>
+                    <p className="text-muted-foreground">Your decisions are tested against the same volatility you'd face with real money.</p>
+                  </div>
+                </SwapCard>
+                <SwapCard className="bg-gradient-to-br from-rose-500/20 to-pink-500/10 border-rose-500/30">
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-rose-500/20 flex items-center justify-center mb-4">
+                      <TrendUpIcon />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-3">Track your progress</h3>
+                    <p className="text-muted-foreground">See your win rate, analyze your trades, and watch yourself improve over time.</p>
+                  </div>
+                </SwapCard>
+              </CardSwap>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Who It's For */}
+      {/* Final CTA */}
       <section className="py-24 px-4 border-t border-white/5">
         <motion.div 
           className="max-w-3xl mx-auto text-center"
@@ -287,35 +359,22 @@ export default function LandingPage() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Built for everyone who wants to trade better
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Whether you're a college student learning the markets, an experienced trader 
-            looking for competition, or just someone who loves the thrill of trading — 
-            MockStreet is your arena.
-          </p>
-        </motion.div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 px-4 border-t border-white/5">
-        <motion.div 
-          className="max-w-2xl mx-auto text-center"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to find out how good you are?
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to prove yourself?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Free to play. No real money required.
+            Students, day traders, beginners, pros — everyone's welcome. Free to play.
           </p>
-          <Button size="lg" className="text-base px-8 py-6" asChild>
-            <Link href="#">Create your account</Link>
-          </Button>
+          
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-block"
+          >
+            <Button size="lg" className="text-base px-8 py-6" asChild>
+              <Link href="#">Create your account</Link>
+            </Button>
+          </motion.div>
         </motion.div>
       </section>
 
@@ -323,7 +382,7 @@ export default function LandingPage() {
       <footer className="py-8 px-4 border-t border-white/5">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-muted-foreground text-sm">
-            © 2024 MockStreet
+            © {new Date().getFullYear()} Mockstreet
           </p>
         </div>
       </footer>
