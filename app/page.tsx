@@ -235,7 +235,7 @@ export default function LandingPage() {
             transition={{ duration: 0.7, delay: 0.4 }}
           >
             <Button size="lg" className="text-base px-8 py-6" asChild>
-              <Link href="#">Start your first battle</Link>
+              <Link href="/login">Start your first battle</Link>
             </Button>
           </motion.div>
         </div>
@@ -372,7 +372,7 @@ export default function LandingPage() {
             className="inline-block"
           >
             <Button size="lg" className="text-base px-8 py-6" asChild>
-              <Link href="#">Create your account</Link>
+              <Link href="/login">Create your account</Link>
             </Button>
           </motion.div>
         </motion.div>

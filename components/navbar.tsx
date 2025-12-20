@@ -14,10 +14,10 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="rounded-full hover:bg-white/10" asChild>
-              <Link href="#">Log in</Link>
+              <Link href="/login">Log in</Link>
             </Button>
             <Button size="sm" className="rounded-full" asChild>
-              <Link href="#">Sign up</Link>
+              <Link href="/login">Sign up</Link>
             </Button>
           </div>
         </div>
