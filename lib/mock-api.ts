@@ -5,7 +5,6 @@ const API_BASE = "https://api.mockstreet.com"
 
 // Simple in-memory store for development
 const matchmakingQueue: Array<{
-  userId: string
   username: string
   timestamp: number
 }> = []
@@ -18,10 +17,9 @@ const activeRooms: Record<string, {
 
 export const MockAPI = {
   // Quick match endpoint
-  quickMatch: async (username: string, userId: string) => {
+  quickMatch: async (username: string) => {
     // Add user to queue
     matchmakingQueue.push({
-      userId,
       username,
       timestamp: Date.now()
     })
@@ -30,7 +28,7 @@ export const MockAPI = {
     if (matchmakingQueue.length >= 2) {
       const [player1, player2] = matchmakingQueue.splice(0, 2)
       const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
+
       activeRooms[roomId] = {
         players: [player1.username, player2.username],
         status: 'active',
@@ -51,8 +49,8 @@ export const MockAPI = {
   },
 
   // Cancel matchmaking
-  cancelMatch: async (username: string, userId: string) => {
-    const index = matchmakingQueue.findIndex(p => p.userId === userId)
+  cancelMatch: async (username: string) => {
+    const index = matchmakingQueue.findIndex(p => p.username === username)
     if (index > -1) {
       matchmakingQueue.splice(index, 1)
     }
@@ -100,13 +98,13 @@ export const MockAPI = {
 export const MockWebSocket = {
   emit: (event: string, data: any) => {
     console.log(`[MockWS] Emit: ${event}`, data)
-    
+
     // Simulate match found after a delay
     if (event === 'find_match') {
       setTimeout(() => {
         const opponent = 'Trader_' + Math.random().toString(36).substr(2, 6)
         const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        
+
         // Trigger match found event
         MockWebSocket.trigger('match_found', {
           opponent,

@@ -1,56 +1,45 @@
+/**
+ * Room-related types for the Trading Battles game.
+ * These types align with the API responses from the backend.
+ */
+
+export type RoomStatus = 'WAITING' | 'ACTIVE' | 'FINISHED'
+
 export interface Room {
-  id: string
+  id: number
   name: string
-  host: {
-    id: string
-    name: string
-    level: number
-    winRate: number
-  }
-  players: Player[]
-  maxPlayers: number
-  isPrivate: boolean
-  status: "waiting" | "in-progress" | "finished"
-  createdAt: string
-  battleDuration: number
-  settings: {
-    symbol: string
-    initialBalance: number
-    allowedOrderTypes: string[]
-  }
+  symbol: string
+  status: RoomStatus
+  player1_username: string
+  player2_username: string | null
+  created_at: string
+  started_at: string | null
+  ended_at: string | null
+  duration_seconds: number
 }
 
 export interface Player {
-  id: string
-  name: string
-  level: number
-  winRate: number
-  joinedAt: string
-  isReady: boolean
+  username: string
+  email: string
+  is_active: boolean
+  is_verified: boolean
 }
 
 export interface RoomMessage {
   id: string
-  roomId: string
-  playerId: string
-  playerName: string
+  roomId: number
+  username: string
   message: string
-  timestamp: string
-  type: "message" | "system" | "join" | "leave"
+  timestamp: number
+  type: 'chat_message' | 'system'
 }
 
 export interface CreateRoomRequest {
   name: string
-  isPrivate: boolean
-  battleDuration: number
-  maxPlayers: number
-  settings: {
-    symbol: string
-    initialBalance: number
-  }
+  symbol: string
+  duration_seconds?: number
 }
 
 export interface JoinRoomRequest {
-  roomId: string
-  playerId: string
+  roomId: number
 }
