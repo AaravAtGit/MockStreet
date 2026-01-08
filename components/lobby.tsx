@@ -13,20 +13,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel
 } from "@/components/ui/select"
-
-const TRADING_PAIRS = [
-  { value: "BTC/USD", label: "BTC/USD", type: "Crypto" },
-  { value: "NIFTY50", label: "NIFTY 50", type: "Index" },
-  { value: "EUR/USD", label: "EUR/USD", type: "Forex" },
-  { value: "AAPL", label: "AAPL", type: "Stock" },
-]
-
-const MATCH_DURATIONS = [
-  { value: 300, label: "5 minutes" },
-  { value: 900, label: "15 minutes" },
-  { value: 1800, label: "30 minutes" },
-]
 
 export function Lobby() {
   const { 
@@ -37,7 +26,8 @@ export function Lobby() {
     tradingPair, 
     setTradingPair,
     matchDuration,
-    setMatchDuration 
+    setMatchDuration,
+    tickers
   } = useGame()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
 
@@ -45,7 +35,30 @@ export function Lobby() {
     await startMatchmaking()
   }
 
-  const selectedPair = TRADING_PAIRS.find(p => p.value === tradingPair) || TRADING_PAIRS[3]
+  // Simplified ticker categorization for the UI
+  const getTickerInfo = (symbol: string) => {
+    if (symbol.endsWith("-USD") || symbol.endsWith("USD")) return { type: "Crypto", label: symbol }
+    if (symbol.startsWith("^") || symbol.includes("X")) return { type: "Index/FX", label: symbol }
+    if (symbol.includes(".NS")) return { type: "NSE", label: symbol.split(".")[0] }
+    return { type: "Stock", label: symbol }
+  }
+
+  // Group tickers by type
+  const groupedTickers = tickers.reduce((acc, ticker) => {
+    const info = getTickerInfo(ticker)
+    if (!acc[info.type]) {
+      acc[info.type] = []
+    }
+    acc[info.type].push({ ticker, label: info.label })
+    return acc
+  }, {} as Record<string, { ticker: string, label: string }[]>)
+
+  const selectedPairInfo = getTickerInfo(tradingPair)
+  const MATCH_DURATIONS = [
+    { value: 300, label: "5 minutes" },
+    { value: 900, label: "15 minutes" },
+    { value: 1800, label: "30 minutes" },
+  ]
   const selectedDuration = MATCH_DURATIONS.find(d => d.value === matchDuration) || MATCH_DURATIONS[0]
 
   return (
@@ -129,19 +142,23 @@ export function Lobby() {
                     <SelectTrigger className="w-full bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
                       <SelectValue>
                         <div className="flex items-center justify-between w-full">
-                          <span className="font-mono">{selectedPair.label}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{selectedPair.type}</span>
+                          <span className="font-mono">{selectedPairInfo.label}</span>
+                          <span className="text-xs text-muted-foreground ml-2">{selectedPairInfo.type}</span>
                         </div>
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {TRADING_PAIRS.map((pair) => (
-                        <SelectItem key={pair.value} value={pair.value}>
-                          <div className="flex items-center justify-between w-full gap-4">
-                            <span className="font-mono">{pair.label}</span>
-                            <span className="text-xs text-muted-foreground">{pair.type}</span>
-                          </div>
-                        </SelectItem>
+                      {Object.entries(groupedTickers).map(([type, items]) => (
+                        <SelectGroup key={type}>
+                          <SelectLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-2 py-1.5 bg-muted/20">
+                            {type}
+                          </SelectLabel>
+                          {items.map((item) => (
+                            <SelectItem key={item.ticker} value={item.ticker}>
+                              <span className="font-mono">{item.label}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       ))}
                     </SelectContent>
                   </Select>

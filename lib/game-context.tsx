@@ -67,6 +67,7 @@ interface GameState {
   error: string | null
   gameEndData: GameEndMessage | null
   playerPosition: 'player1' | 'player2' | null
+  tickers: string[]
 }
 
 interface GameContextType extends GameState {
@@ -114,6 +115,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [gameEndData, setGameEndData] = useState<GameEndMessage | null>(null)
   const [playerPosition, setPlayerPosition] = useState<'player1' | 'player2' | null>(null)
+  const [tickers, setTickers] = useState<string[]>(["AAPL"])
   
   const wsRef = useRef<WebSocket | null>(null)
   const chatWsRef = useRef<WebSocket | null>(null)
@@ -133,6 +135,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }))
     }
   }, [user])
+
+  // Fetch available tickers on mount
+  useEffect(() => {
+    const fetchTickers = async () => {
+      try {
+        const availableTickers = await gameApi.getTickers()
+        if (availableTickers && availableTickers.length > 0) {
+          setTickers(availableTickers)
+          // If AAPL isn't available, default to the first one
+          if (!availableTickers.includes("AAPL")) {
+            setTradingPairState(availableTickers[0])
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch tickers:", err)
+        // Keep default tickers if fetch fails
+      }
+    }
+    fetchTickers()
+  }, [])
 
   // Cleanup WebSocket and polling on unmount
   useEffect(() => {
@@ -412,11 +434,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPhase("matchmaking")
 
     try {
-      // Check for waiting rooms
-      const waitingRooms = await roomsApi.getWaitingRooms()
-      
-              if (waitingRooms.length > 0) {
-                // Join the first waiting room
+                  // Check for waiting rooms
+                  const allWaitingRooms = await roomsApi.getWaitingRooms()
+                  const waitingRooms = allWaitingRooms.filter(r => 
+                    r.symbol === tradingPair && 
+                    r.duration_seconds === matchDuration
+                  )
+                  
+                  if (waitingRooms.length > 0) {                // Join the first waiting room
                 const roomToJoin = waitingRooms[0]
                 const joinedRoom = await roomsApi.join(roomToJoin.id)
                 setCurrentRoom(joinedRoom)
@@ -449,7 +474,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       } else {
         // No waiting rooms, create a new one
         const roomName = `Battle Room ${Date.now()}`
-        const newRoom = await roomsApi.create(roomName, "AAPL", matchDuration)
+        const newRoom = await roomsApi.create(roomName, tradingPair, matchDuration)
         setCurrentRoom(newRoom)
         setTradingPairState(newRoom.symbol)
         setPlayerPosition('player1') // We created the room, so we're player1
@@ -464,7 +489,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [tradingPair, matchDuration])
 
   const openPosition = useCallback(
     async (type: "long" | "short", lots: number, leverage: number) => {
@@ -625,6 +650,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         error,
         gameEndData,
         playerPosition,
+        tickers,
         startMatchmaking,
         openPosition,
         closePosition,

@@ -417,6 +417,15 @@ export const gameApi = {
         const response = await apiClient.post<Position>(`/game/close/${positionId}`)
         return response.data
     },
+
+    /**
+     * Get all available tickers
+     * GET /tickers
+     */
+    getTickers: async (): Promise<string[]> => {
+        const response = await apiClient.get<string[]>('/tickers')
+        return response.data
+    },
 }
 
 // ============================================================================
