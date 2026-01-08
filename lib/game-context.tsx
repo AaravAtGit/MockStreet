@@ -113,6 +113,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   
   const wsRef = useRef<WebSocket | null>(null)
   const chatWsRef = useRef<WebSocket | null>(null)
+  const portfolioWsRef = useRef<WebSocket | null>(null)
   const chatSendRef = useRef<((text: string) => void) | null>(null)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -138,6 +139,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (chatWsRef.current) {
         chatWsRef.current.close()
       }
+      if (portfolioWsRef.current) {
+        portfolioWsRef.current.close()
+      }
       if (pollingRef.current) {
         clearInterval(pollingRef.current)
       }
@@ -162,20 +166,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setTimeRemaining(data.room.time_remaining)
           }
           
-          // Update player and opponent stats from server
+          // Update opponent stats from server (and player balance as backup)
           if (data.players && playerPosition) {
-            const myStats = data.players[playerPosition]
             const oppPosition = playerPosition === 'player1' ? 'player2' : 'player1'
             const oppStats = data.players[oppPosition]
-            
-            if (myStats) {
-              setPlayer(prev => ({
-                ...prev,
-                balance: myStats.balance,
-                pnl: myStats.unrealized_pnl,
-                pnlPercent: (myStats.unrealized_pnl / INITIAL_BALANCE) * 100,
-              }))
-            }
             
             if (oppStats) {
               setOpponent(prev => prev ? {
@@ -209,6 +203,62 @@ export function GameProvider({ children }: { children: ReactNode }) {
       wsRef.current = null
     }
   }, [phase, currentRoom, playerPosition])
+
+  // Connect to Portfolio WebSocket
+  useEffect(() => {
+    if (phase !== "trading" || !currentRoom) return
+
+    const token = authApi.getToken()
+    if (!token) {
+      console.warn("No auth token for portfolio WebSocket")
+      return
+    }
+
+    const { createPortfolioWebSocket } = require("./api") // Import here to avoid circular dependencies if any
+    
+    const ws = createPortfolioWebSocket(
+      currentRoom.id,
+      token,
+      (data: any) => { // Using any for now to simplify matching the imported type
+        if (data.type === 'portfolio_update') {
+          // Update player state with authoritative data from server
+          setPlayer(prev => {
+            // Map API positions to local Position interface
+            const updatedPositions: Position[] = data.positions.map((pos: any) => ({
+              id: `pos-${pos.id}`,
+              apiId: pos.id,
+              type: pos.side === 'LONG' ? 'long' : 'short',
+              lots: pos.quantity,
+              leverage: pos.leverage,
+              entryPrice: pos.entry_price,
+              currentPrice: pos.current_price,
+              pnl: pos.unrealized_pnl
+            }))
+
+            return {
+              ...prev,
+              balance: data.balance,
+              pnl: data.unrealized_pnl,
+              pnlPercent: (data.unrealized_pnl / INITIAL_BALANCE) * 100,
+              positions: updatedPositions
+            }
+          })
+        } else if (data.type === 'error') {
+          console.error("Portfolio error:", data.message)
+        }
+      },
+      (error: Event) => {
+        console.error("Portfolio WebSocket error:", error)
+      }
+    )
+
+    portfolioWsRef.current = ws
+
+    return () => {
+      ws.close()
+      portfolioWsRef.current = null
+    }
+  }, [phase, currentRoom])
 
   // Poll for room status when in waiting phase
   useEffect(() => {
