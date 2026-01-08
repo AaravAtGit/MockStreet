@@ -40,7 +40,7 @@ export function PlayerCard({ player, isOpponent = false }: PlayerCardProps) {
         </div>
         <div className="bg-muted/50 rounded px-2 py-1.5">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Positions</p>
-          <p className="font-mono text-xs">{player.positions.length}</p>
+          <p className="font-mono text-xs">{player.openPositionsCount ?? player.positions.length}</p>
         </div>
       </div>
 

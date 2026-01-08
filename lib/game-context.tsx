@@ -15,6 +15,7 @@ export interface Player {
   pnlPercent: number
   positions: Position[]
   closedPositions: ClosedPosition[]
+  openPositionsCount?: number
 }
 
 export interface Position {
@@ -25,6 +26,7 @@ export interface Position {
   entryPrice: number
   currentPrice: number
   pnl: number
+  entryTime?: string
   apiId?: number // ID from the API
 }
 
@@ -36,6 +38,8 @@ export interface ClosedPosition {
   entryPrice: number
   exitPrice: number
   pnl: number
+  entryTime?: string
+  exitTime?: string
   closedAt: Date
 }
 
@@ -177,6 +181,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 balance: oppStats.balance,
                 pnl: oppStats.unrealized_pnl,
                 pnlPercent: (oppStats.unrealized_pnl / INITIAL_BALANCE) * 100,
+                openPositionsCount: oppStats.open_positions
               } : prev)
             }
           }
@@ -232,7 +237,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
               leverage: pos.leverage,
               entryPrice: pos.entry_price,
               currentPrice: pos.current_price,
-              pnl: pos.unrealized_pnl
+              pnl: pos.unrealized_pnl,
+              entryTime: pos.entry_time
             }))
 
             return {
@@ -307,7 +313,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const updatedPositions = prev.positions.map((pos) => {
         const priceDiff = currentPrice - pos.entryPrice
         const direction = pos.type === "long" ? 1 : -1
-        const pnl = priceDiff * direction * pos.lots * pos.leverage * 0.001
+        const pnl = priceDiff * direction * pos.lots * pos.leverage
         return { ...pos, currentPrice, pnl }
       })
 
@@ -491,6 +497,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           entryPrice: position.entry_price,
           currentPrice: position.entry_price,
           pnl: 0,
+          entryTime: position.entry_time
         }
 
         setPlayer((prev) => ({
@@ -525,6 +532,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           entryPrice: position.entryPrice,
           exitPrice: closedApiPosition.exit_price ?? position.currentPrice,
           pnl: realizedPnl,
+          entryTime: position.entryTime,
+          exitTime: closedApiPosition.exit_time ?? undefined,
           closedAt: new Date(),
         }
 

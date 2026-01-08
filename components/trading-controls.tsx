@@ -182,34 +182,41 @@ export function TradingControls() {
           {activeTab === "open" ? (
             player.positions.length > 0 ? (
               player.positions.map((pos) => (
-                <div key={pos.id} className="flex items-center justify-between bg-muted/30 rounded p-2">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`text-[10px] font-medium px-1 py-0.5 rounded ${
-                        pos.type === "long" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                      }`}
-                    >
-                      {pos.type === "long" ? "L" : "S"}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground font-mono">
-                      {pos.lots} @ {pos.leverage}x
+                <div key={pos.id} className="bg-muted/30 rounded p-2 text-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`font-medium px-1 py-0.5 rounded ${
+                          pos.type === "long" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                        }`}
+                      >
+                        {pos.type === "long" ? "LONG" : "SHORT"}
+                      </span>
+                      <span className="text-muted-foreground font-mono">
+                        {pos.lots} @ {pos.leverage}x
+                      </span>
+                    </div>
+                    <span className={`font-mono ${pos.pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                      {pos.pnl >= 0 ? "+" : ""}${pos.pnl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`font-mono text-xs ${pos.pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                      {pos.pnl >= 0 ? "+" : ""}${pos.pnl.toFixed(2)}
-                    </span>
+                  <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                    <span>Entry: ${pos.entryPrice.toFixed(2)}</span>
+                    <span>Curr: ${pos.currentPrice.toFixed(2)}</span>
+                  </div>
+                   <div className="flex justify-between items-center mt-1">
+                    <span className="text-[9px] text-muted-foreground">{pos.entryTime ? new Date(pos.entryTime).toLocaleTimeString() : '-'}</span>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => handleClosePosition(pos.id)}
                       disabled={closingPositionId === pos.id}
-                      className="h-5 w-5 p-0 hover:bg-destructive/20"
+                      className="h-5 px-2 text-[10px] hover:bg-destructive/20 hover:text-destructive h-auto py-0.5"
                     >
                       {closingPositionId === pos.id ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
                       ) : (
-                        <X className="w-3 h-3" />
+                        "Close"
                       )}
                     </Button>
                   </div>
@@ -220,22 +227,32 @@ export function TradingControls() {
             )
           ) : player.closedPositions.length > 0 ? (
             player.closedPositions.map((pos) => (
-              <div key={pos.id} className="flex items-center justify-between bg-muted/30 rounded p-2">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`text-[10px] font-medium px-1 py-0.5 rounded ${
-                      pos.type === "long" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                    }`}
-                  >
-                    {pos.type === "long" ? "L" : "S"}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {pos.lots} @ {pos.leverage}x
+              <div key={pos.id} className="bg-muted/30 rounded p-2 text-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`font-medium px-1 py-0.5 rounded ${
+                        pos.type === "long" ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                      }`}
+                    >
+                      {pos.type === "long" ? "LONG" : "SHORT"}
+                    </span>
+                    <span className="text-muted-foreground font-mono">
+                      {pos.lots} @ {pos.leverage}x
+                    </span>
+                  </div>
+                  <span className={`font-mono ${pos.pnl >= 0 ? "text-success" : "text-destructive"}`}>
+                    {pos.pnl >= 0 ? "+" : ""}${pos.pnl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                   </span>
                 </div>
-                <span className={`font-mono text-xs ${pos.pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                  {pos.pnl >= 0 ? "+" : ""}${pos.pnl.toFixed(2)}
-                </span>
+                 <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                    <span>Entry: ${pos.entryPrice.toFixed(2)}</span>
+                    <span>Exit: ${pos.exitPrice.toFixed(2)}</span>
+                  </div>
+                   <div className="flex justify-between text-[9px] text-muted-foreground mt-0.5">
+                    <span>{pos.entryTime ? new Date(pos.entryTime).toLocaleTimeString() : '-'}</span>
+                    <span>{pos.exitTime ? new Date(pos.exitTime).toLocaleTimeString() : '-'}</span>
+                   </div>
               </div>
             ))
           ) : (
