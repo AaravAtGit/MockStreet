@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+
 
 // Use environment variable or fallback to localhost
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mockstreet.com'
@@ -208,32 +208,79 @@ export type ChatWebSocketMessage =
     | ErrorMessage
 
 // ============================================================================
-// Axios Client Setup
+// Fetch Client Setup (Replacing Axios)
 // ============================================================================
 
-const createApiClient = (): AxiosInstance => {
-    const client = axios.create({
-        baseURL: API_BASE_URL,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
+class ApiClient {
+    private baseUrl: string;
 
-    // Add auth token interceptor
-    client.interceptors.request.use((config) => {
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
+    }
+
+    private async request<T>(endpoint: string, options: RequestInit = {}): Promise<{ data: T }> {
+        const url = `${this.baseUrl}${endpoint}`;
+        const headers = new Headers(options.headers || {});
+        
+        if (!headers.has('Content-Type') && !(options.body instanceof URLSearchParams)) {
+            headers.set('Content-Type', 'application/json');
+        }
+
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('auth_token')
+            const token = localStorage.getItem('auth_token');
             if (token) {
-                config.headers.Authorization = `Bearer ${token}`
+                headers.set('Authorization', `Bearer ${token}`);
             }
         }
-        return config
-    })
 
-    return client
+        const response = await fetch(url, { ...options, headers });
+
+        if (!response.ok) {
+            let errorMsg = response.statusText;
+            try {
+                const errorData = await response.json();
+                if (errorData?.detail) {
+                    errorMsg = typeof errorData.detail === 'string' 
+                        ? errorData.detail 
+                        : JSON.stringify(errorData.detail);
+                } else if (errorData?.message) {
+                    errorMsg = errorData.message;
+                }
+            } catch (e) {
+                // Continue with default error text if JSON parsing fails
+            }
+            throw new Error(errorMsg || `HTTP error! status: ${response.status}`);
+        }
+
+        if (response.status === 204) {
+            return { data: {} as T };
+        }
+
+        const data = await response.json();
+        return { data };
+    }
+
+    async get<T>(endpoint: string, options: RequestInit = {}): Promise<{ data: T }> {
+        return this.request<T>(endpoint, { ...options, method: 'GET' });
+    }
+
+    async post<T>(endpoint: string, body?: any, options: RequestInit = {}): Promise<{ data: T }> {
+        let fetchBody: BodyInit | undefined;
+        if (body instanceof URLSearchParams) {
+            fetchBody = body;
+        } else if (body !== undefined) {
+            fetchBody = JSON.stringify(body);
+        }
+
+        return this.request<T>(endpoint, {
+            ...options,
+            method: 'POST',
+            body: fetchBody,
+        });
+    }
 }
 
-const apiClient = createApiClient()
+const apiClient = new ApiClient(API_BASE_URL);
 
 // ============================================================================
 // Auth API
