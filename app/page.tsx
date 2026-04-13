@@ -380,7 +380,11 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto flex flex-col items-center justify-center gap-4">
+          <div className="flex space-x-6 text-sm text-muted-foreground">
+            <Link href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link href="/terms-conditions" className="hover:text-foreground transition-colors">Terms of Service</Link>
+          </div>
           <p className="text-muted-foreground text-sm">
             © {new Date().getFullYear()} Mockstreet
           </p>

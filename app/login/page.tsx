@@ -224,9 +224,9 @@ export default function AuthPage() {
           {/* Terms */}
           <p className="text-center text-sm text-muted-foreground mt-6">
             By continuing, you agree to our{" "}
-            <Link href="#" className="underline hover:text-foreground">Terms</Link>
+            <Link href="/terms-conditions" className="underline hover:text-foreground">Terms</Link>
             {" "}and{" "}
-            <Link href="#" className="underline hover:text-foreground">Privacy Policy</Link>
+            <Link href="/privacy-policy" className="underline hover:text-foreground">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
